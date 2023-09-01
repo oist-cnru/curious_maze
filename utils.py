@@ -12,17 +12,17 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 def literal(arg_string): return(ast.literal_eval(arg_string))
 parser = argparse.ArgumentParser()
 
-# Meta 
+    # Meta 
 parser.add_argument('--init_seed',          type=float,      default = 777,    
                     help='Initial seed value for random number generation.')
 parser.add_argument('--device',             type=str,        default = device,
                     help='Which device to use for Torch.')
-parser.add_argument('--steps_per_step',     type=int,        default = 5,
-                    help='To avoid phasing through walls, physical simulation carried out with small steps.')
 
-# Maze and Agent Details
+    # Maze and Agent Details
 parser.add_argument('--maze_list',         type=literal,    default = ['t'],
                     help='List of mazes. Agent trains in each maze based on epochs in epochs parameter.')     
+parser.add_argument('--steps_per_step',     type=int,        default = 5,
+                    help='To avoid phasing through walls, one step of physical simulation is divided into this many.')
 parser.add_argument('--max_steps',          type=int,        default = 25,
                     help='How many steps the agent can make in one episode.')
 parser.add_argument('--step_lim_punishment',type=float,      default = -1,
@@ -52,7 +52,7 @@ parser.add_argument('--max_speed',          type=float,      default = 100,
 parser.add_argument('--speed_scalar',       type=float,      default = .0001,
                     help='How agent training relates prediction-error of speed to prediction-error of image.')
 
-# Modules 
+    # Modules 
 parser.add_argument('--hidden_size',        type=int,        default = 32,
                     help='Parameters in hidden layers.')   
 parser.add_argument('--state_size',         type=int,        default = 32,
@@ -74,7 +74,7 @@ parser.add_argument('--action_prior',       type=str,        default = 'normal',
 parser.add_argument('--tau',                type=float,      default = 1,
                     help='Rate at which target-critics approach critics.')      
 
-# Complexity 
+    # Complexity 
 parser.add_argument('--std_min',            type=int,        default = exp(-20),
                     help='Minimum value for standard deviation.')
 parser.add_argument('--std_max',            type=int,        default = exp(2),
@@ -82,13 +82,13 @@ parser.add_argument('--std_max',            type=int,        default = exp(2),
 parser.add_argument('--beta',               type=float,      default = 0,
                     help='Relative importance of complexity over accuracy.')
 
-# Entropy
+    # Entropy
 parser.add_argument('--alpha',              type=literal,    default = 0,
                     help='Nonnegative value, how much to consider entropy. Set to None to use target_entropy.')        
 parser.add_argument('--target_entropy',     type=float,      default = -2,
                     help='Target for choosing alpha if alpha set to None. Recommended: negative size of action-space.')       
 
-# Curiosity
+    # Curiosity
 parser.add_argument('--curiosity',          type=str,        default = 'none',
                     help='Which kind of curiosity: none, naive, or aware.')    
 parser.add_argument('--naive_eta',          type=float,      default = 1,
@@ -98,11 +98,11 @@ parser.add_argument('--aware_eta',           type=float,     default = 1,
 parser.add_argument('--dkl_max',            type=float,      default = 1,
                     help='Maximum value for clamping Kullback-Liebler divergence for aware curiosity.')        
 
-# Memory buffer
+    # Memory buffer
 parser.add_argument('--capacity',           type=int,        default = 250,
                     help='How many episodes can the memory buffer contain.')
 
-# Training
+    # Training
 parser.add_argument('--epochs',             type=literal,    default = [1000],
                     help='List of how many epochs to train in each maze.')
 parser.add_argument('--steps_per_epoch',    type=int,        default = 25,
