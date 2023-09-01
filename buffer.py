@@ -7,7 +7,8 @@ from utils import default_args
         
 
 
-# Ted got this from: Recurrent Off-policy Baselines for Memory-based Continuous Control, https://github.com/zhihanyang2022/off-policy-continuous-control
+# Recurrent Replay Buffer based on 
+# Recurrent Off-policy Baselines for Memory-based Continuous Control, https://github.com/zhihanyang2022/off-policy-continuous-control
 
         
 
@@ -15,7 +16,7 @@ def as_probas(positive_values: np.array) -> np.array:
     return positive_values / np.sum(positive_values)
 
 def as_tensor_on_device(np_array: np.array):
-    return torch.tensor(np_array).float().to("cpu")
+    return torch.tensor(np_array).float().to('cpu')
 
 class RecurrentReplayBuffer:
 

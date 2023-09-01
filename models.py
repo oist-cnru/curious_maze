@@ -10,15 +10,18 @@ spe_size = 1 ; action_size = 2
 
 
 
+# For applying reparameterization trick. 
 def var(x, mu_func, std_func, args):
     mu = mu_func(x)
     std = torch.clamp(std_func(x), min = args.std_min, max = args.std_max)
     return(mu, std)
 
+# For applying reparameterization trick.
 def sample(mu, std):
-    e = Normal(0, 1).sample(std.shape).to("cuda" if std.is_cuda else "cpu")
+    e = Normal(0, 1).sample(std.shape).to('cuda' if std.is_cuda else 'cpu')
     return(mu + e * std)
 
+# For applying convolutional layers to recurrent tensors. 
 def rnn_cnn(do_this, to_this):
     episodes = to_this.shape[0] ; steps = to_this.shape[1]
     this = to_this.view((episodes * steps, to_this.shape[2], to_this.shape[3], to_this.shape[4]))
@@ -28,6 +31,7 @@ def rnn_cnn(do_this, to_this):
 
 
 
+# A model for RGBD input.
 class RGBD_IN(nn.Module):
 
     def __init__(self, args = default_args):
@@ -42,7 +46,7 @@ class RGBD_IN(nn.Module):
                 out_channels = 16,
                 kernel_size = (3,3),
                 padding = (1,1),
-                padding_mode = "reflect"),
+                padding_mode = 'reflect'),
             nn.PReLU(),
             nn.AvgPool2d(
                 kernel_size = (3,3),
@@ -53,7 +57,7 @@ class RGBD_IN(nn.Module):
                 out_channels = 16,
                 kernel_size = (3,3),
                 padding = (1,1),
-                padding_mode = "reflect"),
+                padding_mode = 'reflect'),
             nn.PReLU(),
             nn.AvgPool2d(
                 kernel_size = (3,3),
@@ -78,6 +82,7 @@ class RGBD_IN(nn.Module):
         
         
 
+# Forward model.
 class Forward(nn.Module):
     
     def __init__(self, args = default_args):
@@ -140,23 +145,23 @@ class Forward(nn.Module):
                 out_channels = 16,
                 kernel_size = (3,3),
                 padding = (1,1),
-                padding_mode = "reflect"),
+                padding_mode = 'reflect'),
             nn.PReLU(),
-            nn.Upsample(scale_factor = 2, mode = "bilinear", align_corners = True),
+            nn.Upsample(scale_factor = 2, mode = 'bilinear', align_corners = True),
             ConstrainedConv2d(
                 in_channels = 16,
                 out_channels = 16,
                 kernel_size = (3,3),
                 padding = (1,1),
-                padding_mode = "reflect"),
+                padding_mode = 'reflect'),
             nn.PReLU(),
-            nn.Upsample(scale_factor = 2, mode = "bilinear", align_corners = True),
+            nn.Upsample(scale_factor = 2, mode = 'bilinear', align_corners = True),
             ConstrainedConv2d(
                 in_channels = 16,
                 out_channels = 16,
                 kernel_size = (3,3),
                 padding = (1,1),
-                padding_mode = "reflect"),
+                padding_mode = 'reflect'),
             nn.PReLU(),
             ConstrainedConv2d(
                 in_channels = 16,
@@ -209,6 +214,7 @@ class Forward(nn.Module):
 
 
 
+# Actor model.
 class Actor(nn.Module):
 
     def __init__(self, args = default_args):
@@ -260,7 +266,8 @@ class Actor(nn.Module):
         return(action, log_prob, h)
     
     
-    
+
+# Critic model.
 class Critic(nn.Module):
 
     def __init__(self, args = default_args):
@@ -306,7 +313,8 @@ class Critic(nn.Module):
         return(Q, h)
     
     
-    
+
+# Actor model using forward model's hidden state.
 class Actor_HQ(nn.Module):
 
     def __init__(self, args = default_args):
@@ -343,7 +351,8 @@ class Actor_HQ(nn.Module):
         return(action, log_prob, None)
     
     
-    
+
+# Critic model using forward model's hidden state.
 class Critic_HQ(nn.Module):
 
     def __init__(self, args = default_args):
@@ -372,7 +381,7 @@ class Critic_HQ(nn.Module):
     
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     
     args = default_args
     args.dkl_rate = 1
@@ -381,7 +390,7 @@ if __name__ == "__main__":
     
     forward = Forward(args)
     
-    print("\n\n")
+    print('\n\n')
     print(forward)
     print()
     print(torch_summary(forward, ((3, 1, args.image_size, args.image_size, 4), (3, 1, spe_size), (3, 1, action_size), (3, 1, args.hidden_size))))
@@ -390,7 +399,7 @@ if __name__ == "__main__":
 
     actor = Actor(args)
     
-    print("\n\n")
+    print('\n\n')
     print(actor)
     print()
     print(torch_summary(actor, ((3, 1, args.image_size, args.image_size, 4), (3, 1, spe_size), (3, 1, action_size))))
@@ -399,7 +408,7 @@ if __name__ == "__main__":
     
     critic = Critic(args)
     
-    print("\n\n")
+    print('\n\n')
     print(critic)
     print()
     print(torch_summary(critic, ((3, 1, args.image_size, args.image_size, 4), (3, 1, spe_size), (3, 1, action_size))))
@@ -408,7 +417,7 @@ if __name__ == "__main__":
     
     actor = Actor_HQ(args)
     
-    print("\n\n")
+    print('\n\n')
     print(actor)
     print()
     print(torch_summary(actor, ((3, 1, args.hidden_size))))
@@ -417,7 +426,7 @@ if __name__ == "__main__":
     
     critic = Critic_HQ(args)
     
-    print("\n\n")
+    print('\n\n')
     print(critic)
     print()
     print(torch_summary(critic, ((3, 1, args.hidden_size), (3, 1, action_size))))
