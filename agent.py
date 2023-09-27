@@ -184,13 +184,13 @@ class Agent:
         # Accuracy error for speeds.
         speed_loss = self.args.speed_scalar * F.mse_loss(zq_pred_spe, next_spe_tiled,  reduction = 'none').mean(-1).unsqueeze(-1) * masks / self.args.elbo_num
         # Accuracy values for every transition in the batch.
-        accuracy_for_naive   = image_loss + speed_loss
+        accuracy_for_prediction_error   = image_loss + speed_loss
         # Accuracy value for entire batch.
-        accuracy             = accuracy_for_naive.mean()
+        accuracy             = accuracy_for_prediction_error.mean()
         # Complexity value for every transition in the batch. 
-        complexity_for_aware = dkl(zq_mus, zq_stds, zp_mus, zp_stds).mean(-1).unsqueeze(-1) * masks
+        complexity_for_hidden_state = dkl(zq_mus, zq_stds, zp_mus, zp_stds).mean(-1).unsqueeze(-1) * masks
         # Complexity value for entire batch.
-        complexity           = self.args.beta * complexity_for_aware.mean()        
+        complexity           = self.args.beta * complexity_for_hidden_state.mean()        
                         
         # Train forward model based on accuracy and complexity. 
         self.forward_opt.zero_grad()
@@ -202,14 +202,14 @@ class Agent:
                         
         
         # Getting curiosity values.
-        # If chosen, clamp complexity for aware curiosity. 
+        # If chosen, clamp complexity for hidden_state curiosity. 
         if(self.args.dkl_max != None):
-            complexity_for_aware = torch.clamp(complexity_for_aware, min = 0, max = self.args.dkl_max)
-        naive_curiosity = self.args.naive_eta * accuracy_for_naive  
-        aware_curiosity = self.args.aware_eta * complexity_for_aware
+            complexity_for_hidden_state = torch.clamp(complexity_for_hidden_state, min = 0, max = self.args.dkl_max)
+        prediction_error_curiosity = self.args.prediction_error_eta * accuracy_for_prediction_error  
+        hidden_state_curiosity = self.args.hidden_state_eta * complexity_for_hidden_state
         # If curiosity is actually employed, select it. Otherwise, use zeros.
-        if(self.args.curiosity == 'naive'):   curiosity = naive_curiosity
-        elif(self.args.curiosity == 'aware'): curiosity = aware_curiosity
+        if(self.args.curiosity == 'prediction_error'):   curiosity = prediction_error_curiosity
+        elif(self.args.curiosity == 'hidden_state'): curiosity = hidden_state_curiosity
         else:                                 curiosity = torch.zeros(rewards.shape)
         # Add curiosity value to extrinsic rewards. 
         rewards += curiosity

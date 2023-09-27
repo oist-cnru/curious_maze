@@ -23,9 +23,9 @@ parser.add_argument('--maze_list',         type=literal,    default = ['t'],
                     help='List of mazes. Agent trains in each maze based on epochs in epochs parameter.')     
 parser.add_argument('--steps_per_step',     type=int,        default = 5,
                     help='To avoid phasing through walls, one step of physical simulation is divided into this many.')
-parser.add_argument('--max_steps',          type=int,        default = 25,
+parser.add_argument('--max_steps',          type=int,        default = 30,
                     help='How many steps the agent can make in one episode.')
-parser.add_argument('--step_lim_punishment',type=float,      default = -1,
+parser.add_argument('--step_lim_punishment',type=float,      default = -2,
                     help='Extrinsic punishment for taking max_steps steps.')
 parser.add_argument('--wall_punishment',    type=float,      default = -1,
                     help='Extrinsic punishment for colliding with walls.')
@@ -47,7 +47,7 @@ parser.add_argument('--max_yaw_change',     type=float,      default = pi/2,
                     help='How much the agent can turn left or right.')
 parser.add_argument('--min_speed',          type=float,      default = 0,
                     help='Agent\'s minimum speed.')
-parser.add_argument('--max_speed',          type=float,      default = 100,
+parser.add_argument('--max_speed',          type=float,      default = 75,
                     help='Agent\'s maximum speed.')
 parser.add_argument('--speed_scalar',       type=float,      default = .0001,
                     help='How agent training relates prediction-error of speed to prediction-error of image.')
@@ -71,7 +71,7 @@ parser.add_argument('--critic_lr',          type=float,      default = .01,
                     help='Learning rate for critic model.')
 parser.add_argument('--action_prior',       type=str,        default = 'normal',
                     help='The actor can be trained based on normal or uniform distributions.')
-parser.add_argument('--tau',                type=float,      default = 1,
+parser.add_argument('--tau',                type=float,      default = .1,
                     help='Rate at which target-critics approach critics.')      
 
     # Complexity 
@@ -90,13 +90,13 @@ parser.add_argument('--target_entropy',     type=float,      default = -2,
 
     # Curiosity
 parser.add_argument('--curiosity',          type=str,        default = 'none',
-                    help='Which kind of curiosity: none, naive, or aware.')    
-parser.add_argument('--naive_eta',          type=float,      default = 1,
-                    help='Nonnegative value, how much to consider naive curiosity.')       
-parser.add_argument('--aware_eta',           type=float,     default = 1,
-                    help='Nonnegative value, how much to consider aware curiosity.')        
+                    help='Which kind of curiosity: none, prediction_error, or hidden_state.')    
+parser.add_argument('--prediction_error_eta',type=float,     default = 1,
+                    help='Nonnegative value, how much to consider prediction_error curiosity.')       
+parser.add_argument('--hidden_state_eta',   type=float,      default = 1,
+                    help='Nonnegative value, how much to consider hidden_state curiosity.')        
 parser.add_argument('--dkl_max',            type=float,      default = 1,
-                    help='Maximum value for clamping Kullback-Liebler divergence for aware curiosity.')        
+                    help='Maximum value for clamping Kullback-Liebler divergence for hidden_state curiosity.')        
 
     # Memory buffer
 parser.add_argument('--capacity',           type=int,        default = 250,
@@ -105,7 +105,7 @@ parser.add_argument('--capacity',           type=int,        default = 250,
     # Training
 parser.add_argument('--epochs',             type=literal,    default = [1000],
                     help='List of how many epochs to train in each maze.')
-parser.add_argument('--steps_per_epoch',    type=int,        default = 25,
+parser.add_argument('--steps_per_epoch',    type=int,        default = 30,
                     help='How many agent-steps between epochs.')
 parser.add_argument('--batch_size',         type=int,        default = 128,
                     help='How many episodes are sampled for each epoch.')
