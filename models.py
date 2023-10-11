@@ -115,12 +115,12 @@ class Forward(nn.Module):
             nn.Softplus())
         
         self.zq_mu = nn.Sequential(
-            nn.Linear(3 * args.hidden_size, args.hidden_size), 
+            nn.Linear(4 * args.hidden_size, args.hidden_size), 
             nn.PReLU(),
             nn.Linear(args.hidden_size, args.state_size),
             nn.Tanh())
         self.zq_std = nn.Sequential(
-            nn.Linear(3 * args.hidden_size, args.hidden_size), 
+            nn.Linear(4 * args.hidden_size, args.hidden_size), 
             nn.PReLU(),
             nn.Linear(args.hidden_size, args.state_size),
             nn.Softplus())
@@ -184,7 +184,7 @@ class Forward(nn.Module):
         prev_a = self.action_in(prev_a)
         relu_h_q_m1 = self.h_in(h_q_m1)
         zp_mu, zp_std = var(relu_h_q_m1, self.zp_mu, self.zp_std, self.args)
-        zq_mu, zq_std = var(torch.cat((relu_h_q_m1, rgbd, spe), dim=-1), self.zq_mu, self.zq_std, self.args)        
+        zq_mu, zq_std = var(torch.cat((relu_h_q_m1, rgbd, spe, prev_a), dim=-1), self.zq_mu, self.zq_std, self.args)        
         zq = sample(zq_mu, zq_std)
         h_q, _ = self.gru(zq, h_q_m1.permute(1, 0, 2))
         return((zp_mu, zp_std), (zq_mu, zq_std), h_q)
