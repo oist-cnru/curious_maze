@@ -37,6 +37,8 @@ parser.add_argument('--randomness',         type=float,      default = 0,
                     help='Which proportion of blocks are randomly selected to randomly change color.')
 parser.add_argument('--random_steps',       type=int,        default = 1,
                     help='How many steps an agent makes between selected blocks randomly change color.')
+parser.add_argument('--random_by_choice',   type=bool,       default = False,
+                    help='Whether or not curiosity traps are placed randomly or as chosen.')
 parser.add_argument('--step_cost',          type=float,      default = .99,
                     help='How much extrinsic rewards to exiting are reduced per step.')
 parser.add_argument('--body_size',          type=float,      default = 2,

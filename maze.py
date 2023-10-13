@@ -16,35 +16,36 @@ class Exit:
     def __init__(self, name, pos, rew):     
         self.name = name ; self.pos = pos ; self.rew = rew
 
-# A maze description consists of a starting position and exits.
+# A maze description consists of a starting position, exits, and places for curiosity traps if not random.
 class Maze_Description:
-    def __init__(self, start, exits):
+    def __init__(self, start, exits, random_by_choice = []):
         self.start = start 
         self.exits = pd.DataFrame(
             data = [[exit.name, exit.pos, exit.rew] for exit in exits],
             columns = ['Name', 'Position', 'Reward'])
-        
+        self.random_by_choice = random_by_choice
         
 # Dictionary describing four possible mazes.
 maze_dict = {
     't.png' : Maze_Description(
         (3, 1),
         [Exit(  'LEFT',     (2,0), 'default'),
-        Exit(   'RIGHT',    (2,4), 'better')]
-        ),
-    
+        Exit(   'RIGHT',    (2,4), 'better')],
+        [(1, 0), (3, 0), (4, 1)]),
     '1.png' : Maze_Description(
         (2,2), 
-        [Exit(  'LEFT',    (1,0), 'default'),
-        Exit(   'RIGHT',    (1,4), 'better')]
-        ),
+        [Exit(  'LEFT',     (1,0), 'default'),
+        Exit(   'RIGHT',    (1,4), 'better')],
+        [(0, 0), (0, 1), 
+         (2, 0), (2, 1)]),
     '2.png' : Maze_Description(
         (3,3), 
-        [Exit(  'LEFT\nLEFT',   (4,1), 'better'),
-        Exit(   'LEFT\nRIGHT',  (0,1), 'default'),
+        [Exit(  'LEFT\nLEFT',   (4,1), 'default'),
+        Exit(   'LEFT\nRIGHT',  (0,1), 'better'),
         Exit(   'RIGHT\nLEFT',  (0,5), 'default'),
-        Exit(   'RIGHT\nRIGHT', (4,5), 'default')]
-        ),
+        Exit(   'RIGHT\nRIGHT', (4,5), 'default')],
+        [(3, 0), (3, 2), 
+         (4, 0), (4, 2)]),
     '3.png' : Maze_Description(
         (4,4), 
         [Exit(  'LEFT\nLEFT\nLEFT',    (6,3), 'default'),
@@ -54,8 +55,10 @@ maze_dict = {
         Exit(   'RIGHT\nLEFT\nLEFT',   (0,5), 'better'),
         Exit(   'RIGHT\nLEFT\nRIGHT',  (0,7), 'default'),
         Exit(   'RIGHT\nRIGHT\nLEFT',  (6,7), 'default'),
-        Exit(   'RIGHT\nRIGHT\nRIGHT', (6,5), 'default')]
-        )}
+        Exit(   'RIGHT\nRIGHT\nRIGHT', (6,5), 'default')],
+        [(4, 1), (4, 3), 
+         (5, 0), 
+         (6, 0), (6, 2)])}
 
 
 
@@ -105,8 +108,11 @@ class Maze():
         for cube, color in self.colors.items():
             p.changeVisualShape(cube, -1, rgbaColor = color, physicsClientId = self.physicsClient)
         
-        # Select random blocks to randomly change colors for environmental stochasticities (curiosity traps)
-        self.random_pos = sample(cube_locs, k=int(len(cube_locs) * args.randomness))
+        # Select blocks to randomly change colors for environmental stochasticities (curiosity traps)
+        if(args.random_by_choice):
+            self.random_pos = maze_dict[maze_name].random_by_choice
+        else:
+            self.random_pos = sample(cube_locs, k=int(len(cube_locs) * args.randomness))
 
         # Make a red rubber duck for the agent.
         inherent_roll = pi/2
