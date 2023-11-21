@@ -112,22 +112,23 @@ class Agent:
     
     # Perform an entire episode. 
     def training_episode(self, push = True):
-        print('Episodes:', self.episodes)
         # Initialize previous action and hidden state and zeros. 
         done = False ; prev_a = torch.zeros((1, 1, 2))
         h = torch.zeros((1, 1, self.args.hidden_size))
         
         # Begin.
+        total_r = 0
         self.maze_runner.begin()
         # Perform step by step.
         for step in range(self.args.max_steps):
             self.steps += 1
             if(not done):
                 prev_a, h, r, spot_name, done, _ = self.step_in_episode_hq(prev_a, h, push) if self.args.actor_hq else self.step_in_episode(prev_a, h, push)
+                total_r += r
             # If steps can divide steps_per_epoch, have an epoch. 
             if(self.steps % self.args.steps_per_epoch == 0):
                 self.epoch(batch_size = self.args.batch_size)
-        print('Exit: {}. Rewards: {}.'.format(spot_name, r))
+        print('\nExit {}: {}.\nLast step extrinsic reward: {}.\nTotal extrinsic reward: {}.'.format(self.episodes, spot_name, r, total_r))
         self.episodes += 1
     
     
@@ -147,6 +148,8 @@ class Agent:
         episodes = rewards.shape[0] ; steps = rewards.shape[1]
         # Add first previous action, zeros. 
         actions = torch.cat([torch.zeros(actions[:,0].unsqueeze(1).shape), actions], dim = 1)
+        # Add ones for complete mask. 
+        all_masks = torch.cat([torch.ones(masks.shape[0], 1, 1), masks], dim = 1)  
         
 
 
@@ -162,12 +165,19 @@ class Agent:
             # Update inner states.
             (zp_mu, zp_std), (zq_mu, zq_std), h_q_p1 = self.forward(rgbd[:, step], spe[:, step], actions[:, step], h_qs[-1])
             # Predict observations. 
-            (_, zq_preds_rgbd), (_, zq_preds_spe) = self.forward.get_preds(actions[:, step+1], zq_mu, zq_std, h_qs[-1], quantity = self.args.elbo_num)
+            if(self.args.curiosity == "free"):
+                (_, zq_preds_rgbd), (_, zq_preds_spe) = self.forward.get_preds(actions[:, step+1], zp_mu, zp_std, h_qs[-1], quantity = self.args.elbo_num)
+            else:
+                (_, zq_preds_rgbd), (_, zq_preds_spe) = self.forward.get_preds(actions[:, step+1], zq_mu, zq_std, h_qs[-1], quantity = self.args.elbo_num)
             # Store.
             zp_mus.append(zp_mu) ; zp_stds.append(zp_std)
             zq_mus.append(zq_mu) ; zq_stds.append(zq_std)
             zq_pred_rgbd.append(torch.cat(zq_preds_rgbd, -1)) ; zq_pred_spe.append(torch.cat(zq_preds_spe, -1))
             h_qs.append(h_q_p1)
+        # Final step with nothing to predict.
+        (zp_mu, zp_std), (zq_mu, zq_std), h_q_p1 = self.forward(rgbd[:, step+1], spe[:, step+1], actions[:, step+1], h_qs[-1])
+        zp_mus.append(zp_mu) ; zp_stds.append(zp_std)
+        zq_mus.append(zq_mu) ; zq_stds.append(zq_std)
         # Get forward model hidden states ready for actor and critic, if necessary.
         h_qs.append(h_qs.pop(0)) ; h_qs = torch.cat(h_qs, dim = 1) ; next_hqs = h_qs[:, 1:] ; hqs = h_qs[:, :-1]
         # Concatenate lists of states. 
@@ -188,9 +198,11 @@ class Agent:
         # Accuracy value for entire batch.
         accuracy             = accuracy_for_prediction_error.mean()
         # Complexity value for every transition in the batch. 
-        complexity_for_hidden_state = dkl(zq_mus, zq_stds, zp_mus, zp_stds).mean(-1).unsqueeze(-1) * masks
+        complexity_for_hidden_state = dkl(zq_mus, zq_stds, zp_mus, zp_stds).mean(-1).unsqueeze(-1) * all_masks 
         # Complexity value for entire batch.
-        complexity           = self.args.beta * complexity_for_hidden_state.mean()        
+        complexity           = self.args.beta * complexity_for_hidden_state.mean()  
+        # Remove first step's complexity, as it's not used for curiosity.
+        complexity_for_hidden_state = complexity_for_hidden_state[:,1:]      
                         
         # Train forward model based on accuracy and complexity. 
         self.forward_opt.zero_grad()

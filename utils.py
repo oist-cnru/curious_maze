@@ -25,7 +25,7 @@ parser.add_argument('--steps_per_step',     type=int,        default = 5,
                     help='To avoid phasing through walls, one step of physical simulation is divided into this many.')
 parser.add_argument('--max_steps',          type=int,        default = 30,
                     help='How many steps the agent can make in one episode.')
-parser.add_argument('--step_lim_punishment',type=float,      default = -2,
+parser.add_argument('--step_lim_punishment',type=float,      default = -3,
                     help='Extrinsic punishment for taking max_steps steps.')
 parser.add_argument('--wall_punishment',    type=float,      default = -1,
                     help='Extrinsic punishment for colliding with walls.')
