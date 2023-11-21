@@ -117,18 +117,19 @@ class Agent:
         h = torch.zeros((1, 1, self.args.hidden_size))
         
         # Begin.
-        total_r = 0
+        all_r = []
         self.maze_runner.begin()
         # Perform step by step.
         for step in range(self.args.max_steps):
             self.steps += 1
             if(not done):
                 prev_a, h, r, spot_name, done, _ = self.step_in_episode_hq(prev_a, h, push) if self.args.actor_hq else self.step_in_episode(prev_a, h, push)
-                total_r += r
+                all_r.append(r)
             # If steps can divide steps_per_epoch, have an epoch. 
             if(self.steps % self.args.steps_per_epoch == 0):
                 self.epoch(batch_size = self.args.batch_size)
-        print('\nExit {}: {}.\nLast step extrinsic reward: {}.\nTotal extrinsic reward: {}.'.format(self.episodes, spot_name, r, total_r))
+        all_r = [round(r,3) for r in all_r]
+        print('\nExit {}: {}.\nEpisode\'s total extrinsic reward: {}.'.format(self.episodes, spot_name, round(sum(all_r), 3)))
         self.episodes += 1
     
     
@@ -220,13 +221,13 @@ class Agent:
         prediction_error_curiosity = self.args.prediction_error_eta * accuracy_for_prediction_error  
         hidden_state_curiosity = self.args.hidden_state_eta * complexity_for_hidden_state
         # If curiosity is actually employed, select it. Otherwise, use zeros.
-        if(self.args.curiosity == 'prediction_error'):   curiosity = prediction_error_curiosity
-        elif(self.args.curiosity == 'hidden_state'): curiosity = hidden_state_curiosity
-        else:                                 curiosity = torch.zeros(rewards.shape)
+        if(self.args.curiosity == 'prediction_error'):  curiosity = prediction_error_curiosity
+        elif(self.args.curiosity == 'hidden_state'):    curiosity = hidden_state_curiosity
+        else:                                           curiosity = torch.zeros(rewards.shape)
         # Add curiosity value to extrinsic rewards. 
-        rewards += curiosity
-                
-        
+        rewards += curiosity                
+    
+    
                 
         # Train critic models.
         # First, get target Qs.
@@ -285,7 +286,7 @@ class Agent:
             else:                       alpha = self.args.alpha
             # Get actor's actions. 
             new_actions, log_pis, _ = self.actor(hqs.detach()) if self.args.actor_hq else self.actor(rgbd[:,:-1], spe[:,:-1], actions[:,:-1])
-
+            
             # Find entropy. 
             if self.args.action_prior == 'normal':
                 loc = torch.zeros(action_size, dtype=torch.float64)
