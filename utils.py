@@ -8,8 +8,10 @@ from torch import nn
 # Finding device for Torch.
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# Arguments to parse. 
+# How to parse literal arguments.
 def literal(arg_string): return(ast.literal_eval(arg_string))
+
+# Arguments to parse. 
 parser = argparse.ArgumentParser()
 
     # Meta 
