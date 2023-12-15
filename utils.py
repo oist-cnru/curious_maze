@@ -27,7 +27,7 @@ parser.add_argument('--steps_per_step',     type=int,        default = 5,
                     help='To avoid phasing through walls, one step of physical simulation is divided into this many.')
 parser.add_argument('--max_steps',          type=int,        default = 30,
                     help='How many steps the agent can make in one episode.')
-parser.add_argument('--step_lim_punishment',type=float,      default = -3,
+parser.add_argument('--step_lim_punishment',type=float,      default = -1,
                     help='Extrinsic punishment for taking max_steps steps.')
 parser.add_argument('--wall_punishment',    type=float,      default = -1,
                     help='Extrinsic punishment for colliding with walls.')
@@ -61,10 +61,6 @@ parser.add_argument('--hidden_size',        type=int,        default = 32,
                     help='Parameters in hidden layers.')   
 parser.add_argument('--state_size',         type=int,        default = 32,
                     help='Parameters in prior and posterior inner-states.')
-parser.add_argument('--actor_hq',           type=literal,    default = True,
-                    help='Is the agent\'s actor using the forward model\'s hidden-state?')
-parser.add_argument('--critic_hq',          type=literal,    default = False,
-                    help='Is the critic\'s actor using the forward model\'s hidden-state?')
 parser.add_argument('--forward_lr',         type=float,      default = .01,
                     help='Learning rate for forward model.')
 parser.add_argument('--alpha_lr',           type=float,      default = .01,
@@ -83,7 +79,7 @@ parser.add_argument('--std_min',            type=int,        default = exp(-20),
                     help='Minimum value for standard deviation.')
 parser.add_argument('--std_max',            type=int,        default = exp(2),
                     help='Maximum value for standard deviation.')
-parser.add_argument('--beta',               type=float,      default = 0,
+parser.add_argument('--beta',               type=float,      default = .01,
                     help='Relative importance of complexity over accuracy.')
 
     # Entropy
@@ -111,10 +107,8 @@ parser.add_argument('--epochs',             type=literal,    default = [1000],
                     help='List of how many epochs to train in each maze.')
 parser.add_argument('--steps_per_epoch',    type=int,        default = 30,
                     help='How many agent-steps between epochs.')
-parser.add_argument('--batch_size',         type=int,        default = 128,
+parser.add_argument('--batch_size',         type=int,        default = 16,
                     help='How many episodes are sampled for each epoch.')
-parser.add_argument('--elbo_num',           type=int,        default = 1,
-                    help='How many times the forward model will predict the next observation.')
 parser.add_argument('--GAMMA',              type=float,      default = .9,
                     help='How heavily the critic considers the future.')
 parser.add_argument('--d',                  type=int,        default = 2,
@@ -129,19 +123,6 @@ except: args, _ = parser.parse_known_args()
 
 
 
-# For initializing parameters of neural networks.
-def init_weights(m):
-    try:
-        torch.nn.init.xavier_normal_(m.weight)
-        m.bias.data.fill_(0.01)
-    except: pass
-    
-# Convolution layers with clamped weights. 
-class ConstrainedConv2d(nn.Conv2d):
-    def forward(self, input):
-        return nn.functional.conv2d(input, self.weight.clamp(min=-1.0, max=1.0), self.bias, self.stride,
-                                    self.padding, self.dilation, self.groups)
-
 # Calculating Kullback-Liebler divergence.
 def dkl(mu_1, std_1, mu_2, std_2):
     std_1 = std_1**2
@@ -153,7 +134,8 @@ def dkl(mu_1, std_1, mu_2, std_2):
     out = torch.nan_to_num(out)
     return(out)
 
-
+def detach_list(l): 
+    return([element.detach() for element in l])
 
 
 # %%

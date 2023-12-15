@@ -5,4 +5,4 @@ Train an agent without intrinsic rewards with
 >python run main.py
 
 or adjust arguments like 
->python main.py --curiosity hidden_state --alpha None --hidden_state_eta .5 --beta .001
+>python main.py --curiosity hidden_state --hidden_state_eta .5 --alpha None

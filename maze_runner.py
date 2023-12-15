@@ -13,7 +13,7 @@ from maze import Maze
 class Maze_Runner:
     
     # Initialize
-    def __init__(self, maze_name, GUI = False, args = default_args):
+    def __init__(self, maze_name, GUI = True, args = default_args):
         self.args = args
         self.maze = Maze(maze_name, GUI, args)
         self.begin()
