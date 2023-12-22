@@ -4,5 +4,5 @@ Example code for the paper "Intrinsic Rewards for Exploration without Harm from 
 Train an agent without intrinsic rewards with
 >python run main.py
 
-or adjust arguments like 
->python main.py --curiosity hidden_state --hidden_state_eta .5 --alpha None
+or adjust arguments like
+>python main.py --curiosity hidden_state --alpha None

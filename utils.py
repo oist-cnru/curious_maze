@@ -91,9 +91,9 @@ parser.add_argument('--target_entropy',     type=float,      default = -2,
     # Curiosity
 parser.add_argument('--curiosity',          type=str,        default = 'none',
                     help='Which kind of curiosity: none, prediction_error, or hidden_state.')    
-parser.add_argument('--prediction_error_eta',type=float,     default = 1,
+parser.add_argument('--prediction_error_eta',type=float,     default = .5,
                     help='Nonnegative value, how much to consider prediction_error curiosity.')       
-parser.add_argument('--hidden_state_eta',   type=float,      default = 1,
+parser.add_argument('--hidden_state_eta',   type=float,      default = .5,
                     help='Nonnegative value, how much to consider hidden_state curiosity.')        
 parser.add_argument('--dkl_max',            type=float,      default = 1,
                     help='Maximum value for clamping Kullback-Liebler divergence for hidden_state curiosity.')        
@@ -107,7 +107,7 @@ parser.add_argument('--epochs',             type=literal,    default = [1000],
                     help='List of how many epochs to train in each maze.')
 parser.add_argument('--steps_per_epoch',    type=int,        default = 30,
                     help='How many agent-steps between epochs.')
-parser.add_argument('--batch_size',         type=int,        default = 16,
+parser.add_argument('--batch_size',         type=int,        default = 32,
                     help='How many episodes are sampled for each epoch.')
 parser.add_argument('--GAMMA',              type=float,      default = .9,
                     help='How heavily the critic considers the future.')

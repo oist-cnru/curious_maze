@@ -439,7 +439,7 @@ if __name__ == "__main__":
     print("\n\n")
     print(forward)
     print()
-    print(torch_summary(forward, ((e, s+1, action_size), (e, s, args.image_size, args.image_size, 4), (e, s, spe_size))))
+    print(torch_summary(forward, ((e, s+1, action_size), (e, s+1, args.image_size, args.image_size, 4), (e, s+1, spe_size))))
     
     
     
