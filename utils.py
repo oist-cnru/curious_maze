@@ -124,15 +124,18 @@ except: args, _ = parser.parse_known_args()
 
 
 # Calculating Kullback-Liebler divergence.
-def dkl(mu_1, std_1, mu_2, std_2):
-    std_1 = std_1**2
-    std_2 = std_2**2
-    term_1 = (mu_2 - mu_1)**2 / std_2 
-    term_2 = std_1 / std_2 
+def calculate_dkl(p_mu, p_std, q_mu, q_std):
+    """Calculate Kullback-Leibler divergence between two Gaussians.
+    DKL(Q||P) = .5 * ( (p_mu - q_mu)**2 / p_std**2 + q_std**2 / p_std**2 - log(q_std**2 / p_std**2) - 1 )
+    """
+    p_std = p_std ** 2
+    q_std = q_std ** 2
+    term_1 = (p_mu - q_mu) ** 2 / p_std
+    term_2 = q_std / p_std
     term_3 = torch.log(term_2)
-    out = (.5 * (term_1 + term_2 - term_3 - 1))
+    out = 0.5 * (term_1 + term_2 - term_3 - 1)
     out = torch.nan_to_num(out)
-    return(out)
+    return out
 
 def detach_list(l): 
     return([element.detach() for element in l])
