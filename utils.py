@@ -124,7 +124,7 @@ except: args, _ = parser.parse_known_args()
 
 
 # Calculating Kullback-Liebler divergence.
-def calculate_dkl(p_mu, p_std, q_mu, q_std):
+def calculate_dkl(q_mu, q_std, p_mu, p_std):
     """Calculate Kullback-Leibler divergence between two Gaussians.
     DKL(Q||P) = .5 * ( (p_mu - q_mu)**2 / p_std**2 + q_std**2 / p_std**2 - log(q_std**2 / p_std**2) - 1 )
     """
