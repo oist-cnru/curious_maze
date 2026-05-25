@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from torch.distributions import MultivariateNormal
 import torch.optim as optim
 
-from utils import default_args, dkl, detach_list
+from utils import default_args, calculate_dkl, detach_list
 from maze_runner import Maze_Runner
 from buffer import RecurrentReplayBuffer
 from models import Forward, Actor, Critic
@@ -148,7 +148,7 @@ class Agent:
         accuracy = accuracy_for_prediction_error.mean()
         
         # Complexity value for every transition in the batch. 
-        complexity_for_hidden_state = [dkl(zq_mu, zq_std, zp_mu, zp_std).mean(-1).unsqueeze(-1) * all_masks for (zq_mu, zq_std, zp_mu, zp_std) in zip(zq_mus, zq_stds, zp_mus, zp_stds)]
+        complexity_for_hidden_state = [calculate_dkl(zq_mu, zq_std, zp_mu, zp_std).mean(-1).unsqueeze(-1) * all_masks for (zq_mu, zq_std, zp_mu, zp_std) in zip(zq_mus, zq_stds, zp_mus, zp_stds)]
         # Total complexity for entire batch.
         complexity = sum([self.args.beta * complexity_for_hidden_state[layer].mean() for layer in range(1)])       
         # Remove first step's complexity, as it's not used for curiosity.
